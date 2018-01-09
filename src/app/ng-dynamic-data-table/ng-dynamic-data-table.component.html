@@ -1,0 +1,42 @@
+<table class="table table-striped" *ngIf="model != null">
+  <thead>
+    <tr>
+      <th *ngFor="let column of model.columns">
+        <a (click)="onClick_SortColumn(column)">
+          {{ column.name }}
+          <i class="fa fa-sort" *ngIf="column.sort && !column.sort.direction"></i>
+          <i class="fa fa-sort-asc" *ngIf="column.sort && column.sort.direction && column.sort.direction == 'ASC'"></i>
+          <i class="fa fa-sort-desc" *ngIf="column.sort && column.sort.direction && column.sort.direction == 'DSC'"></i>
+        </a>
+        <!-- <a class="pull-right" (click)="onClick_FilterColumn(column)">
+          <i class="fa fa-filter" *ngIf="column.filter"></i>
+        </a>
+        <span *ngIf="column.filter && column.filter.isOpen && column.filter.type == 'checkbox'">
+          <br />
+          <span *ngFor="let checkboxValue of column.filter.checkboxValues">
+              <input type="checkbox" [checked]="checkboxValue.selected" /> {{ checkboxValue.name }}
+              <br />
+          </span>
+        </span> -->
+      </th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr *ngFor="let item of model.data">
+      <th *ngFor="let column of model.columns">
+        {{ item[column.accessor] }}
+      </th>
+    </tr>
+  </tbody>
+</table>
+<ul class="pagination pagination-lg pull-right" *ngIf="pages != null">
+  <li class="{{ currentPage <= 1? 'disabled' : '' }}">
+    <a (click)="onClick_PreviousPage()">Prev</a>
+  </li>
+  <li *ngFor="let page of pages" class="{{ page == currentPage? 'active' : '' }}">
+    <a (click)="onClick_PageNumber(page)">{{ page }}</a>
+  </li>
+  <li class="{{ this.currentPage >= this.pages[this.pages.length - 1]? 'disabled' : '' }}">
+    <a (click)="onClick_NextPage()">Next</a>
+  </li>
+</ul>
