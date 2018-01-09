@@ -2,6 +2,7 @@ import { Component, OnInit, Input, Output } from '@angular/core';
 import { DynamicDataTableModel } from '../models/dynamic-data-table-model';
 import { Observable } from 'rxjs/Observable';
 import { ColumnModel } from '../models/column-model';
+import { CheckboxValueModel } from '../models/checkbox-value-model';
 
 @Component({
   selector: 'ng-dynamic-data-table',
@@ -27,19 +28,38 @@ export class NgDynamicDataTableComponent implements OnInit {
   }
 
   public onClick_SortColumn(column: ColumnModel): void {
-    if (!column.sort.direction) {
-      column.sort.direction = 'ASC';
-    } else if (column.sort.direction == 'ASC') {
-      column.sort.direction = 'DSC';
-    } else if (column.sort.direction == 'DSC') {
-      column.sort.direction = 'ASC';
+
+    if (!column.sort) {
+      return;
     }
+
+    let direction = null;
+
+    if (!column.sort.direction) {
+      direction = 'ASC';
+    } else if (column.sort.direction == 'ASC') {
+      direction = 'DSC';
+    } else if (column.sort.direction == 'DSC') {
+      direction = 'ASC';
+    }
+
+    this.clearAllColumnSorting();
+
+    column.sort.direction = direction;
 
     this.reloadModel();
   }
 
   public onClick_FilterColumn(column: ColumnModel): void {
     column.filter.isOpen = !column.filter.isOpen;
+
+    if (!column.filter.isOpen) {
+      this.onClick_PageNumber(1);
+    }
+  }
+
+  public onClick_FilterColumnCheckbox(column: ColumnModel, checkboxValue: CheckboxValueModel): void {
+    checkboxValue.selected = !checkboxValue.selected;
   }
 
   public onClick_NextPage(): void {
@@ -59,7 +79,7 @@ export class NgDynamicDataTableComponent implements OnInit {
     this.currentPage = page;
 
     if (this.model) {
-      this.model.skip = (this.currentPage * this.model.take);
+      this.model.skip = ((this.currentPage - 1) * this.model.take);
     }
 
     this.reloadModel();
@@ -78,8 +98,16 @@ export class NgDynamicDataTableComponent implements OnInit {
   private calculatePages(): void {
     this.pages = [];
 
-    for (let i = 1; i < Math.ceil(this.model.count / this.model.take); i++) {
+    for (let i = 1; i < Math.ceil(this.model.count / this.model.take) + 1; i++) {
       this.pages.push(i);
+    }
+  }
+
+  private clearAllColumnSorting(): void {
+    for (const column of this.model.columns) {
+      if (column.sort) {
+        column.sort.direction = null;
+      }
     }
   }
 

@@ -8,16 +8,37 @@
           <i class="fa fa-sort-asc" *ngIf="column.sort && column.sort.direction && column.sort.direction == 'ASC'"></i>
           <i class="fa fa-sort-desc" *ngIf="column.sort && column.sort.direction && column.sort.direction == 'DSC'"></i>
         </a>
-        <!-- <a class="pull-right" (click)="onClick_FilterColumn(column)">
+        <a class="pull-right" (click)="onClick_FilterColumn(column)">
           <i class="fa fa-filter" *ngIf="column.filter"></i>
         </a>
-        <span *ngIf="column.filter && column.filter.isOpen && column.filter.type == 'checkbox'">
+        <span *ngIf="column.filter && column.filter.type == 'checkbox' && column.filter.isOpen">
           <br />
           <span *ngFor="let checkboxValue of column.filter.checkboxValues">
-              <input type="checkbox" [checked]="checkboxValue.selected" /> {{ checkboxValue.name }}
-              <br />
+            <input type="checkbox" [checked]="checkboxValue.selected" (change)="onClick_FilterColumnCheckbox(column, checkboxValue)"
+            /> {{ checkboxValue.name }}
+            <br />
           </span>
-        </span> -->
+        </span>
+        <span *ngIf="column.filter && column.filter.type == 'text' && column.filter.isOpen">
+          <br />
+          <span>
+            <input type="text" [(ngModel)]="column.filter.value" class="form-control" placeholder="Search" />
+          </span>
+        </span>
+        <span *ngIf="column.filter && column.filter.type == 'numeric' && column.filter.isOpen">
+          <br />
+          <span>
+            <select [(ngModel)]="column.filter.operator" class="form-control">
+              <option [ngValue]="'equal'">Equal</option>
+              <option [ngValue]="'not-equal'">Not equal</option>
+              <option [ngValue]="'greater'">Greater then</option>
+              <option [ngValue]="'greater-equal'">Greater or equal than</option>
+              <option [ngValue]="'less'">Less then</option>
+              <option [ngValue]="'less-equal'">Less or equal than</option>
+            </select>
+            <input type="number" [(ngModel)]="column.filter.value" class="form-control" placeholder="Value" />
+          </span>
+        </span>
       </th>
     </tr>
   </thead>
