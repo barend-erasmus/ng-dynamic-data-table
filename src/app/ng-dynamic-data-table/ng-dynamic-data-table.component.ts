@@ -14,7 +14,7 @@ export class NgDynamicDataTableComponent implements OnInit {
   public model: DynamicDataTableModel = null;
 
   public pages: number[] = null;
-  public currentPage: number = 1;
+  public currentPage = 1;
 
   @Input()
   public loadModel: (model: DynamicDataTableModel) => Observable<DynamicDataTableModel> = null;
@@ -72,9 +72,9 @@ export class NgDynamicDataTableComponent implements OnInit {
 
     if (!column.sort.direction) {
       direction = 'ASC';
-    } else if (column.sort.direction == 'ASC') {
+    } else if (column.sort.direction === 'ASC') {
       direction = 'DSC';
-    } else if (column.sort.direction == 'DSC') {
+    } else if (column.sort.direction === 'DSC') {
       direction = 'ASC';
     }
 

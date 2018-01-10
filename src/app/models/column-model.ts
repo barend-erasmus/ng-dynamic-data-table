@@ -1,5 +1,5 @@
-import { FilterModel } from "./filter-model";
-import { SortModel } from "./sort-model";
+import { FilterModel } from './filter-model';
+import { SortModel } from './sort-model';
 
 export class ColumnModel {
     constructor(

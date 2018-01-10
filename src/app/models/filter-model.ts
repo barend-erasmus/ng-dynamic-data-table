@@ -1,4 +1,4 @@
-import { CheckboxValueModel } from "./checkbox-value-model";
+import { CheckboxValueModel } from './checkbox-value-model';
 
 export class FilterModel {
     constructor(
