@@ -5,10 +5,12 @@ import { async, ComponentFixture, TestBed } from '@angular/core/testing';
 import { NgDynamicDataTableComponent } from './ng-dynamic-data-table.component';
 import { DynamicDataTableModel } from '../models/dynamic-data-table-model';
 import { Observable } from 'rxjs/Observable';
+import 'rxjs/add/observable/of';
 import { ColumnModel } from '../models/column-model';
 import { FilterModel } from '../models/filter-model';
 import { SortModel } from '../models/sort-model';
 import { CheckboxValueModel } from '../models/checkbox-value-model';
+import { last } from 'rxjs/operator/last';
 
 describe('NgDynamicDataTableComponent', () => {
   let component: NgDynamicDataTableComponent;
@@ -65,9 +67,394 @@ describe('NgDynamicDataTableComponent', () => {
     fixture.detectChanges();
   });
 
-  describe('UI', () => {
-    it('should create', () => {
-      expect(component).toBeTruthy();
+  describe('#onClick_FilterColumn', () => {
+    it('should set column.filter.isOpen to true given false', () => {
+      const column: ColumnModel = new ColumnModel('email', new FilterModel(false, null, 'text', null, null), 'Email Address', null, 'text');
+
+      component.onClick_FilterColumn(column);
+
+      expect(column.filter.isOpen).toEqual(true);
+    });
+
+    it('should set column.filter.isOpen to false given true', () => {
+      const column: ColumnModel = new ColumnModel('email', new FilterModel(true, null, 'text', null, null), 'Email Address', null, 'text');
+
+      component.onClick_FilterColumn(column);
+
+      expect(column.filter.isOpen).toEqual(false);
+    });
+
+    it('should set current page to 1', () => {
+      const column: ColumnModel = new ColumnModel('email', new FilterModel(true, null, 'text', null, null), 'Email Address', null, 'text');
+
+      component.onClick_FilterColumn(column);
+
+      expect(component.currentPage).toEqual(1);
+    });
+
+    it('should call loadModel given column.filter.isOpen true', () => {
+      const loadModelSpy = spyOn(component, 'loadModel').and.returnValue(Observable.of(new DynamicDataTableModel(
+        [
+          new ColumnModel('first_name', null, 'First Name', new SortModel(null), 'text'),
+          new ColumnModel('last_name', null, 'Last Name', new SortModel(null), 'text'),
+          new ColumnModel('email', new FilterModel(false, null, 'text', null, null), 'Email Address', null, 'text'),
+          new ColumnModel('gender', new FilterModel(false, null, 'checkbox', null, [
+            new CheckboxValueModel('Male', true, 'Male'),
+            new CheckboxValueModel('Female', true, 'Female'),
+          ]), 'Gender', null, 'text'),
+          new ColumnModel('ip_address', null, 'IP Address', null, 'text'),
+          new ColumnModel('clicks', new FilterModel(false, null, 'numeric', null, null), 'Number of Clicks', null, 'numeric'),
+        ],
+        10,
+        [],
+        null,
+        0,
+        3,
+      )));
+
+      const column: ColumnModel = new ColumnModel('email', new FilterModel(true, null, 'text', null, null), 'Email Address', null, 'text');
+
+      component.onClick_FilterColumn(column);
+
+      expect(loadModelSpy.calls.any()).toEqual(true);
     });
   });
+
+  describe('#onClick_FilterColumnCheckbox', () => {
+    it('should toggle checkboxValue.selected to false given true', () => {
+      const column: ColumnModel = new ColumnModel('gender', new FilterModel(false, null, 'checkbox', null, [
+        new CheckboxValueModel('Male', true, 'Male'),
+        new CheckboxValueModel('Female', true, 'Female'),
+      ]), 'Gender', null, 'text');
+
+      const checkboxValue: CheckboxValueModel = column.filter.checkboxValues[0];
+
+      component.onClick_FilterColumnCheckbox(column, checkboxValue);
+
+      expect(checkboxValue.selected).toEqual(false);
+    });
+
+    it('should toggle checkboxValue.selected to true given false', () => {
+      const column: ColumnModel = new ColumnModel('gender', new FilterModel(false, null, 'checkbox', null, [
+        new CheckboxValueModel('Male', false, 'Male'),
+        new CheckboxValueModel('Female', true, 'Female'),
+      ]), 'Gender', null, 'text');
+
+      const checkboxValue: CheckboxValueModel = column.filter.checkboxValues[0];
+
+      component.onClick_FilterColumnCheckbox(column, checkboxValue);
+
+      expect(checkboxValue.selected).toEqual(true);
+    });
+  });
+
+  describe('#onClick_NextPage', () => {
+    it('should increment current page', () => {
+      const initialPage: number = component.currentPage;
+
+      component.onClick_NextPage();
+
+      expect(component.currentPage).toEqual(initialPage + 1);
+    });
+
+    it('should not increment current page given current page is last page', () => {
+      const lastPage: number = component.pages[component.pages.length - 1];
+
+      component.currentPage = lastPage;
+
+      component.onClick_NextPage();
+
+      expect(component.currentPage).toEqual(lastPage);
+    });
+
+    it('should call loadModel', () => {
+      const loadModelSpy = spyOn(component, 'loadModel').and.returnValue(Observable.of(new DynamicDataTableModel(
+        [
+          new ColumnModel('first_name', null, 'First Name', new SortModel(null), 'text'),
+          new ColumnModel('last_name', null, 'Last Name', new SortModel(null), 'text'),
+          new ColumnModel('email', new FilterModel(false, null, 'text', null, null), 'Email Address', null, 'text'),
+          new ColumnModel('gender', new FilterModel(false, null, 'checkbox', null, [
+            new CheckboxValueModel('Male', true, 'Male'),
+            new CheckboxValueModel('Female', true, 'Female'),
+          ]), 'Gender', null, 'text'),
+          new ColumnModel('ip_address', null, 'IP Address', null, 'text'),
+          new ColumnModel('clicks', new FilterModel(false, null, 'numeric', null, null), 'Number of Clicks', null, 'numeric'),
+        ],
+        10,
+        [],
+        null,
+        0,
+        3,
+      )));
+
+      component.onClick_NextPage();
+
+      expect(loadModelSpy.calls.any()).toEqual(true);
+    });
+
+    it('should not call loadModel given current page is last page', () => {
+      const loadModelSpy = spyOn(component, 'loadModel').and.returnValue(Observable.of(new DynamicDataTableModel(
+        [
+          new ColumnModel('first_name', null, 'First Name', new SortModel(null), 'text'),
+          new ColumnModel('last_name', null, 'Last Name', new SortModel(null), 'text'),
+          new ColumnModel('email', new FilterModel(false, null, 'text', null, null), 'Email Address', null, 'text'),
+          new ColumnModel('gender', new FilterModel(false, null, 'checkbox', null, [
+            new CheckboxValueModel('Male', true, 'Male'),
+            new CheckboxValueModel('Female', true, 'Female'),
+          ]), 'Gender', null, 'text'),
+          new ColumnModel('ip_address', null, 'IP Address', null, 'text'),
+          new ColumnModel('clicks', new FilterModel(false, null, 'numeric', null, null), 'Number of Clicks', null, 'numeric'),
+        ],
+        10,
+        [],
+        null,
+        0,
+        3,
+      )));
+
+      const lastPage: number = component.pages[component.pages.length - 1];
+
+      component.currentPage = lastPage;
+
+      component.onClick_NextPage();
+
+      expect(loadModelSpy.calls.any()).toEqual(false);
+    });
+  });
+
+  describe('#onClick_PageNumber', () => {
+    it('should set current page', () => {
+      component.onClick_PageNumber(3);
+
+      expect(component.currentPage).toEqual(3);
+    });
+
+    it('should not increment current page given current page is last page', () => {
+      const lastPage: number = component.pages[component.pages.length - 1];
+
+      component.currentPage = lastPage;
+
+      component.onClick_NextPage();
+
+      expect(component.currentPage).toEqual(lastPage);
+    });
+
+    it('should call loadModel', () => {
+      const loadModelSpy = spyOn(component, 'loadModel').and.returnValue(Observable.of(new DynamicDataTableModel(
+        [
+          new ColumnModel('first_name', null, 'First Name', new SortModel(null), 'text'),
+          new ColumnModel('last_name', null, 'Last Name', new SortModel(null), 'text'),
+          new ColumnModel('email', new FilterModel(false, null, 'text', null, null), 'Email Address', null, 'text'),
+          new ColumnModel('gender', new FilterModel(false, null, 'checkbox', null, [
+            new CheckboxValueModel('Male', true, 'Male'),
+            new CheckboxValueModel('Female', true, 'Female'),
+          ]), 'Gender', null, 'text'),
+          new ColumnModel('ip_address', null, 'IP Address', null, 'text'),
+          new ColumnModel('clicks', new FilterModel(false, null, 'numeric', null, null), 'Number of Clicks', null, 'numeric'),
+        ],
+        10,
+        [],
+        null,
+        0,
+        3,
+      )));
+
+      component.onClick_NextPage();
+
+      expect(loadModelSpy.calls.any()).toEqual(true);
+    });
+  });
+
+  describe('#onClick_PreviousPage', () => {
+    it('should decrement current page', () => {
+      component.currentPage = 3;
+
+      const initialPage: number = component.currentPage;
+
+      component.onClick_PreviousPage();
+
+      expect(component.currentPage).toEqual(initialPage - 1);
+    });
+
+    it('should not decrement current page given current page is first page', () => {
+      const firstPage: number = component.pages[0];
+
+      component.currentPage = firstPage;
+
+      component.onClick_PreviousPage();
+
+      expect(component.currentPage).toEqual(firstPage);
+    });
+
+    it('should call loadModel', () => {
+      const loadModelSpy = spyOn(component, 'loadModel').and.returnValue(Observable.of(new DynamicDataTableModel(
+        [
+          new ColumnModel('first_name', null, 'First Name', new SortModel(null), 'text'),
+          new ColumnModel('last_name', null, 'Last Name', new SortModel(null), 'text'),
+          new ColumnModel('email', new FilterModel(false, null, 'text', null, null), 'Email Address', null, 'text'),
+          new ColumnModel('gender', new FilterModel(false, null, 'checkbox', null, [
+            new CheckboxValueModel('Male', true, 'Male'),
+            new CheckboxValueModel('Female', true, 'Female'),
+          ]), 'Gender', null, 'text'),
+          new ColumnModel('ip_address', null, 'IP Address', null, 'text'),
+          new ColumnModel('clicks', new FilterModel(false, null, 'numeric', null, null), 'Number of Clicks', null, 'numeric'),
+        ],
+        10,
+        [],
+        null,
+        0,
+        3,
+      )));
+
+      component.currentPage = 3;
+
+      component.onClick_PreviousPage();
+
+      expect(loadModelSpy.calls.any()).toEqual(true);
+    });
+
+    it('should not call loadModel given current page is first page', () => {
+      const loadModelSpy = spyOn(component, 'loadModel').and.returnValue(Observable.of(new DynamicDataTableModel(
+        [
+          new ColumnModel('first_name', null, 'First Name', new SortModel(null), 'text'),
+          new ColumnModel('last_name', null, 'Last Name', new SortModel(null), 'text'),
+          new ColumnModel('email', new FilterModel(false, null, 'text', null, null), 'Email Address', null, 'text'),
+          new ColumnModel('gender', new FilterModel(false, null, 'checkbox', null, [
+            new CheckboxValueModel('Male', true, 'Male'),
+            new CheckboxValueModel('Female', true, 'Female'),
+          ]), 'Gender', null, 'text'),
+          new ColumnModel('ip_address', null, 'IP Address', null, 'text'),
+          new ColumnModel('clicks', new FilterModel(false, null, 'numeric', null, null), 'Number of Clicks', null, 'numeric'),
+        ],
+        10,
+        [],
+        null,
+        0,
+        3,
+      )));
+
+      const firstPage: number = component.pages[0];
+
+      component.currentPage = firstPage;
+
+      component.onClick_PreviousPage();
+
+      expect(loadModelSpy.calls.any()).toEqual(false);
+    });
+  });
+
+  describe('#onClick_SortColumn', () => {
+    it('should set column.sort.direction to ASC given null', () => {
+      const column: ColumnModel = new ColumnModel('first_name', null, 'First Name', new SortModel(null), 'text');
+
+      component.onClick_SortColumn(column);
+
+      expect(column.sort.direction).toEqual('ASC');
+    });
+
+    it('should set column.sort.direction to DSC given ASC', () => {
+      const column: ColumnModel = new ColumnModel('first_name', null, 'First Name', new SortModel('ASC'), 'text');
+
+      component.onClick_SortColumn(column);
+
+      expect(column.sort.direction).toEqual('DSC');
+    });
+
+    it('should set column.sort.direction to ASC given DSC', () => {
+      const column: ColumnModel = new ColumnModel('first_name', null, 'First Name', new SortModel('DSC'), 'text');
+
+      component.onClick_SortColumn(column);
+
+      expect(column.sort.direction).toEqual('ASC');
+    });
+
+    it('should clear all other column sorting', () => {
+      const model: DynamicDataTableModel = new DynamicDataTableModel(
+        [
+          new ColumnModel('first_name', null, 'First Name', new SortModel(null), 'text'),
+          new ColumnModel('last_name', null, 'Last Name', new SortModel('ASC'), 'text'),
+          new ColumnModel('email', new FilterModel(false, null, 'text', null, null), 'Email Address', null, 'text'),
+          new ColumnModel('gender', new FilterModel(false, null, 'checkbox', null, [
+            new CheckboxValueModel('Male', true, 'Male'),
+            new CheckboxValueModel('Female', true, 'Female'),
+          ]), 'Gender', null, 'text'),
+          new ColumnModel('ip_address', null, 'IP Address', null, 'text'),
+          new ColumnModel('clicks', new FilterModel(false, null, 'numeric', null, null), 'Number of Clicks', null, 'numeric'),
+        ],
+        10,
+        [],
+        null,
+        0,
+        3,
+      );
+
+      component.model = model;
+
+      const column: ColumnModel = model.columns[0];
+
+      component.onClick_SortColumn(column);
+
+      expect(model.columns[1].sort.direction).toEqual(null);
+    });
+
+    it('should call loadModel', () => {
+      const loadModelSpy = spyOn(component, 'loadModel').and.returnValue(Observable.of(new DynamicDataTableModel(
+        [
+          new ColumnModel('first_name', null, 'First Name', new SortModel(null), 'text'),
+          new ColumnModel('last_name', null, 'Last Name', new SortModel(null), 'text'),
+          new ColumnModel('email', new FilterModel(false, null, 'text', null, null), 'Email Address', null, 'text'),
+          new ColumnModel('gender', new FilterModel(false, null, 'checkbox', null, [
+            new CheckboxValueModel('Male', true, 'Male'),
+            new CheckboxValueModel('Female', true, 'Female'),
+          ]), 'Gender', null, 'text'),
+          new ColumnModel('ip_address', null, 'IP Address', null, 'text'),
+          new ColumnModel('clicks', new FilterModel(false, null, 'numeric', null, null), 'Number of Clicks', null, 'numeric'),
+        ],
+        10,
+        [],
+        null,
+        0,
+        3,
+      )));
+
+      const column: ColumnModel = new ColumnModel('first_name', null, 'First Name', new SortModel(null), 'text');
+
+      component.onClick_SortColumn(column);
+
+      expect(loadModelSpy.calls.any()).toEqual(true);
+    });
+
+    it('should not call loadModel given column.srot null', () => {
+      const loadModelSpy = spyOn(component, 'loadModel').and.returnValue(Observable.of(new DynamicDataTableModel(
+        [
+          new ColumnModel('first_name', null, 'First Name', new SortModel(null), 'text'),
+          new ColumnModel('last_name', null, 'Last Name', new SortModel(null), 'text'),
+          new ColumnModel('email', new FilterModel(false, null, 'text', null, null), 'Email Address', null, 'text'),
+          new ColumnModel('gender', new FilterModel(false, null, 'checkbox', null, [
+            new CheckboxValueModel('Male', true, 'Male'),
+            new CheckboxValueModel('Female', true, 'Female'),
+          ]), 'Gender', null, 'text'),
+          new ColumnModel('ip_address', null, 'IP Address', null, 'text'),
+          new ColumnModel('clicks', new FilterModel(false, null, 'numeric', null, null), 'Number of Clicks', null, 'numeric'),
+        ],
+        10,
+        [],
+        null,
+        0,
+        3,
+      )));
+
+      const column: ColumnModel = new ColumnModel('ip_address', null, 'IP Address', null, 'text');
+
+      component.onClick_SortColumn(column);
+
+      expect(loadModelSpy.calls.any()).toEqual(false);
+    });
+  });
+
+  // describe('UI', () => {
+  //   it('should create', () => {
+  //     expect(component).toBeTruthy();
+  //   });
+  // });
 });

@@ -50,6 +50,7 @@ export class NgDynamicDataTableComponent implements OnInit {
     this.currentPage = page;
 
     if (this.model) {
+      // TODO: Move to method
       this.model.skip = ((this.currentPage - 1) * this.model.take);
     }
 
