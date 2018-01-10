@@ -27,6 +27,41 @@ export class NgDynamicDataTableComponent implements OnInit {
     this.reloadModel();
   }
 
+  public onClick_FilterColumn(column: ColumnModel): void {
+    column.filter.isOpen = !column.filter.isOpen;
+
+    if (!column.filter.isOpen) {
+      this.onClick_PageNumber(1);
+    }
+  }
+
+  public onClick_FilterColumnCheckbox(column: ColumnModel, checkboxValue: CheckboxValueModel): void {
+    checkboxValue.selected = !checkboxValue.selected;
+  }
+
+  public onClick_NextPage(): void {
+    if (this.currentPage < this.pages[this.pages.length - 1]) {
+      this.onClick_PageNumber(this.currentPage + 1);
+    }
+  }
+
+  public onClick_PageNumber(page: number): void {
+
+    this.currentPage = page;
+
+    if (this.model) {
+      this.model.skip = ((this.currentPage - 1) * this.model.take);
+    }
+
+    this.reloadModel();
+  }
+
+  public onClick_PreviousPage(): void {
+    if (this.currentPage > 1) {
+      this.onClick_PageNumber(this.currentPage - 1);
+    }
+  }
+
   public onClick_SortColumn(column: ColumnModel): void {
 
     if (!column.sort) {
@@ -50,51 +85,6 @@ export class NgDynamicDataTableComponent implements OnInit {
     this.reloadModel();
   }
 
-  public onClick_FilterColumn(column: ColumnModel): void {
-    column.filter.isOpen = !column.filter.isOpen;
-
-    if (!column.filter.isOpen) {
-      this.onClick_PageNumber(1);
-    }
-  }
-
-  public onClick_FilterColumnCheckbox(column: ColumnModel, checkboxValue: CheckboxValueModel): void {
-    checkboxValue.selected = !checkboxValue.selected;
-  }
-
-  public onClick_NextPage(): void {
-    if (this.currentPage < this.pages[this.pages.length - 1]) {
-      this.onClick_PageNumber(this.currentPage + 1);
-    }
-  }
-
-  public onClick_PreviousPage(): void {
-    if (this.currentPage > 1) {
-      this.onClick_PageNumber(this.currentPage - 1);
-    }
-  }
-
-  public onClick_PageNumber(page: number): void {
-
-    this.currentPage = page;
-
-    if (this.model) {
-      this.model.skip = ((this.currentPage - 1) * this.model.take);
-    }
-
-    this.reloadModel();
-  }
-
-  private reloadModel(): void {
-    if (this.loadModel) {
-      this.loadModel(this.model).subscribe((model) => {
-        this.model = model;
-
-        this.calculatePages();
-      });
-    }
-  }
-
   private calculatePages(): void {
     this.pages = [];
 
@@ -111,4 +101,13 @@ export class NgDynamicDataTableComponent implements OnInit {
     }
   }
 
+  private reloadModel(): void {
+    if (this.loadModel) {
+      this.loadModel(this.model).subscribe((model) => {
+        this.model = model;
+
+        this.calculatePages();
+      });
+    }
+  }
 }
