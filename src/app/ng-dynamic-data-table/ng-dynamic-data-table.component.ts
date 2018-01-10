@@ -1,4 +1,5 @@
 import { Component, OnInit, Input, Output } from '@angular/core';
+
 import { DynamicDataTableModel } from '../models/dynamic-data-table-model';
 import { Observable } from 'rxjs/Observable';
 import { ColumnModel } from '../models/column-model';
@@ -20,7 +21,6 @@ export class NgDynamicDataTableComponent implements OnInit {
   public loadModel: (model: DynamicDataTableModel) => Observable<DynamicDataTableModel> = null;
 
   constructor() {
-
   }
 
   public ngOnInit(): void {

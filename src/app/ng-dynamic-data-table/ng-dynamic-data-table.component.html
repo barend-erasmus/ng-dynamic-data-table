@@ -1,20 +1,20 @@
-<table class="table table-striped" *ngIf="model != null">
+<table *ngIf="model != null" class="table table-striped">
   <thead>
     <tr>
       <th *ngFor="let column of model.columns">
         <a (click)="onClick_SortColumn(column)">
           {{ column.name }}
-          <i class="fa fa-sort" *ngIf="column.sort && !column.sort.direction"></i>
-          <i class="fa fa-sort-asc" *ngIf="column.sort && column.sort.direction && column.sort.direction == 'ASC'"></i>
-          <i class="fa fa-sort-desc" *ngIf="column.sort && column.sort.direction && column.sort.direction == 'DSC'"></i>
+          <i *ngIf="column.sort && !column.sort.direction" class="fa fa-sort"></i>
+          <i *ngIf="column.sort && column.sort.direction && column.sort.direction == 'ASC'" class="fa fa-sort-asc"></i>
+          <i *ngIf="column.sort && column.sort.direction && column.sort.direction == 'DSC'" class="fa fa-sort-desc"></i>
         </a>
-        <a class="pull-right" (click)="onClick_FilterColumn(column)">
-          <i class="fa fa-filter" *ngIf="column.filter"></i>
+        <a (click)="onClick_FilterColumn(column)" class="pull-right">
+          <i *ngIf="column.filter" class="fa fa-filter"></i>
         </a>
         <span *ngIf="column.filter && column.filter.type == 'checkbox' && column.filter.isOpen">
           <br />
           <span *ngFor="let checkboxValue of column.filter.checkboxValues">
-            <input type="checkbox" [checked]="checkboxValue.selected" (change)="onClick_FilterColumnCheckbox(column, checkboxValue)"
+            <input [checked]="checkboxValue.selected" (change)="onClick_FilterColumnCheckbox(column, checkboxValue)" type="checkbox"
             /> {{ checkboxValue.name }}
             <br />
           </span>
@@ -22,7 +22,7 @@
         <span *ngIf="column.filter && column.filter.type == 'text' && column.filter.isOpen">
           <br />
           <span>
-            <input type="text" [(ngModel)]="column.filter.value" class="form-control" placeholder="Search" />
+            <input [(ngModel)]="column.filter.value" type="text" class="form-control" placeholder="Search" />
           </span>
         </span>
         <span *ngIf="column.filter && column.filter.type == 'numeric' && column.filter.isOpen">
@@ -36,7 +36,7 @@
               <option [ngValue]="'less'">Less then</option>
               <option [ngValue]="'less-equal'">Less or equal than</option>
             </select>
-            <input type="number" [(ngModel)]="column.filter.value" class="form-control" placeholder="Value" />
+            <input [(ngModel)]="column.filter.value" type="number" class="form-control" placeholder="Value" />
           </span>
         </span>
       </th>
@@ -50,7 +50,7 @@
     </tr>
   </tbody>
 </table>
-<ul class="pagination pagination-lg pull-right" *ngIf="pages != null">
+<ul *ngIf="pages != null" class="pagination pagination-lg pull-right">
   <li class="{{ currentPage <= 1? 'disabled' : '' }}">
     <a (click)="onClick_PreviousPage()">Prev</a>
   </li>
